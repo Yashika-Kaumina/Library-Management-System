@@ -19,9 +19,13 @@ public class Publisher extends javax.swing.JFrame {
 
     public void Connect() {
         try {
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver");
             con = DriverManager.getConnection("jdbc:mysql://localhost/guilibrarynew", "root", "");
-        } catch (Exception ex) {
+        } catch (ClassNotFoundException ex) {
+            System.out.println("MySQL Driver not found!");
+            ex.printStackTrace();
+        } catch (SQLException ex) {
+            System.out.println("Database Connection Failed!");
             ex.printStackTrace();
         }
     }
@@ -64,6 +68,7 @@ public class Publisher extends javax.swing.JFrame {
         txtphone = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Publisher Management");
         jPanel1.setBackground(new java.awt.Color(0, 0, 0));
 
         jLabel1.setFont(new java.awt.Font("Times New Roman", 1, 36));
@@ -81,18 +86,32 @@ public class Publisher extends javax.swing.JFrame {
         jButton1.setBackground(new java.awt.Color(0, 255, 51));
         jButton1.setText("Add");
         jButton1.addActionListener(evt -> {
+            String name = txtname.getText().trim();
+            String address = txtaddress.getText().trim();
+            String phone = txtphone.getText().trim();
+            
+            if (name.isEmpty() || address.isEmpty() || phone.isEmpty()) {
+                JOptionPane.showMessageDialog(Publisher.this, "All fields are required!");
+                return;
+            }
+            
             try {
-                pat = con.prepareStatement("insert into publisher(name,address,phone) values(?,?,?)");
-                pat.setString(1, txtname.getText());
-                pat.setString(2, txtaddress.getText());
-                pat.setString(3, txtphone.getText());
-                if (pat.executeUpdate() == 1) {
-                    JOptionPane.showMessageDialog(this, "Publisher Created");
+                pat = con.prepareStatement("insert into publisher(name, address, phone) values(?,?,?)");
+                pat.setString(1, name);
+                pat.setString(2, address);
+                pat.setString(3, phone);
+                int k = pat.executeUpdate();
+                
+                if (k == 1) {
+                    JOptionPane.showMessageDialog(Publisher.this, "Publisher Created Successfully!");
                     clearFields();
                     Publisher_Load();
+                } else {
+                    JOptionPane.showMessageDialog(Publisher.this, "Error creating publisher!");
                 }
             } catch (SQLException ex) {
                 ex.printStackTrace();
+                JOptionPane.showMessageDialog(Publisher.this, "Database Error: " + ex.getMessage());
             }
         });
 
@@ -100,22 +119,40 @@ public class Publisher extends javax.swing.JFrame {
         jButton2.setText("Update");
         jButton2.addActionListener(evt -> {
             int row = jTable1.getSelectedRow();
-            if (row < 0) return;
+            if (row < 0) {
+                JOptionPane.showMessageDialog(Publisher.this, "Please select a row to update!");
+                return;
+            }
+            
             int id = Integer.parseInt(jTable1.getValueAt(row, 0).toString());
+            String name = txtname.getText().trim();
+            String address = txtaddress.getText().trim();
+            String phone = txtphone.getText().trim();
+            
+            if (name.isEmpty() || address.isEmpty() || phone.isEmpty()) {
+                JOptionPane.showMessageDialog(Publisher.this, "All fields are required!");
+                return;
+            }
+            
             try {
                 pat = con.prepareStatement("update publisher set name=?, address=?, phone=? where id=?");
-                pat.setString(1, txtname.getText());
-                pat.setString(2, txtaddress.getText());
-                pat.setString(3, txtphone.getText());
+                pat.setString(1, name);
+                pat.setString(2, address);
+                pat.setString(3, phone);
                 pat.setInt(4, id);
-                if (pat.executeUpdate() == 1) {
-                    JOptionPane.showMessageDialog(this, "Updated");
+                int k = pat.executeUpdate();
+                
+                if (k == 1) {
+                    JOptionPane.showMessageDialog(Publisher.this, "Publisher Updated Successfully!");
                     clearFields();
                     Publisher_Load();
                     jButton1.setEnabled(true);
+                } else {
+                    JOptionPane.showMessageDialog(Publisher.this, "Error updating publisher!");
                 }
             } catch (SQLException ex) {
                 ex.printStackTrace();
+                JOptionPane.showMessageDialog(Publisher.this, "Database Error: " + ex.getMessage());
             }
         });
 
@@ -123,24 +160,43 @@ public class Publisher extends javax.swing.JFrame {
         jButton3.setText("Delete");
         jButton3.addActionListener(evt -> {
             int row = jTable1.getSelectedRow();
-            if (row < 0) return;
+            if (row < 0) {
+                JOptionPane.showMessageDialog(Publisher.this, "Please select a row to delete!");
+                return;
+            }
+            
             int id = Integer.parseInt(jTable1.getValueAt(row, 0).toString());
+            int confirm = JOptionPane.showConfirmDialog(Publisher.this, 
+                "Are you sure you want to delete this publisher?", 
+                "Confirm Delete", 
+                JOptionPane.YES_NO_OPTION);
+            
+            if (confirm != JOptionPane.YES_OPTION) return;
+            
             try {
                 pat = con.prepareStatement("delete from publisher where id=?");
                 pat.setInt(1, id);
-                if (pat.executeUpdate() == 1) {
-                    JOptionPane.showMessageDialog(this, "Deleted");
+                int k = pat.executeUpdate();
+                
+                if (k == 1) {
+                    JOptionPane.showMessageDialog(Publisher.this, "Publisher Deleted Successfully!");
+                    clearFields();
                     Publisher_Load();
                     jButton1.setEnabled(true);
+                } else {
+                    JOptionPane.showMessageDialog(Publisher.this, "Error deleting publisher!");
                 }
             } catch (SQLException ex) {
                 ex.printStackTrace();
+                JOptionPane.showMessageDialog(Publisher.this, "Database Error: " + ex.getMessage());
             }
         });
 
         jButton4.setBackground(new java.awt.Color(255, 0, 51));
         jButton4.setText("Cancel");
-        jButton4.addActionListener(evt -> this.dispose());
+        jButton4.addActionListener(evt -> {
+            this.dispose();
+        });
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object[][]{},
@@ -149,6 +205,7 @@ public class Publisher extends javax.swing.JFrame {
         jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 int row = jTable1.getSelectedRow();
+                if (row < 0) return;
                 txtname.setText(jTable1.getValueAt(row, 1).toString());
                 txtaddress.setText(jTable1.getValueAt(row, 2).toString());
                 txtphone.setText(jTable1.getValueAt(row, 3).toString());
@@ -240,7 +297,7 @@ public class Publisher extends javax.swing.JFrame {
 
         pack();
         setLocationRelativeTo(null);
-        setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH); // මෙය add කරන්න
+        setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
     }
 
     private void clearFields() {
@@ -248,6 +305,7 @@ public class Publisher extends javax.swing.JFrame {
         txtaddress.setText("");
         txtphone.setText("");
         jButton1.setEnabled(true);
+        txtname.requestFocus();
     }
 
     public static void main(String args[]) {

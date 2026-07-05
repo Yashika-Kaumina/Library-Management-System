@@ -39,16 +39,18 @@ public class LendDVD extends javax.swing.JFrame {
     PreparedStatement pat;
     ResultSet rs;
     
-    public void Connect(){
-        try{
-          Class.forName("com.mysql.jdbc.Driver");
-          con = DriverManager.getConnection("jdbc:mysql://localhost/guilibrarynew","root","");  
-        }catch(ClassNotFoundException ex){
-            Logger.getLogger(LendDVD.class.getName()).log(Level.SEVERE,null,ex);
-        }catch(SQLException ex){
-            Logger.getLogger(LendDVD.class.getName()).log(Level.SEVERE,null,ex);
-        }
+    public void Connect() {
+    try {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        con = DriverManager.getConnection("jdbc:mysql://localhost/guilibrarynew", "root", "");
+    } catch (ClassNotFoundException ex) {
+        System.out.println("MySQL Driver not found!");
+        ex.printStackTrace();
+    } catch (SQLException ex) {
+        System.out.println("Database Connection Failed!");
+        ex.printStackTrace();
     }
+}
 
     // DVD Items for ComboBox
     public class DVDItem{
