@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Run Login",
+            "request": "launch",
+            "mainClass": "guilibararynew.Login",
+            "classPaths": [
+                "${workspaceFolder}",
+                "${workspaceFolder}/lib/mysql-connector-j-9.7.0.jar"
+            ]
+        }
+    ]
+}

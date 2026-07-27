@@ -290,6 +290,8 @@ public class Member extends javax.swing.JFrame {
                 .addContainerGap(17, Short.MAX_VALUE))
         );
 
+        UITheme.applyFrame(this);
+
         pack();
         setLocationRelativeTo(null);
         setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH); // Full Screen

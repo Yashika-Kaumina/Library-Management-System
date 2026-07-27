@@ -1,9 +1,26 @@
 package guilibararynew;
 
-import java.sql.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Vector;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
 
 public class Category extends javax.swing.JFrame {
 
@@ -18,26 +35,30 @@ public class Category extends javax.swing.JFrame {
     ResultSet rs;
 
     public void Connect() {
-    try {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        con = DriverManager.getConnection("jdbc:mysql://localhost/guilibrarynew", "root", "");
-    } catch (ClassNotFoundException ex) {
-        System.out.println("MySQL Driver not found!");
-        ex.printStackTrace();
-    } catch (SQLException ex) {
-        System.out.println("Database Connection Failed!");
-        ex.printStackTrace();
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://localhost/guilibrarynew", "root", "");
+        } catch (ClassNotFoundException ex) {
+            System.out.println("MySQL Driver not found!");
+            ex.printStackTrace();
+        } catch (SQLException ex) {
+            System.out.println("Database Connection Failed!");
+            ex.printStackTrace();
+        }
     }
-}
 
     public void Category_Load() {
+        if (con == null) {
+            return;
+        }
+
         try {
             pat = con.prepareStatement("select * from Category");
             rs = pat.executeQuery();
             DefaultTableModel d = (DefaultTableModel) jTable1.getModel();
             d.setRowCount(0);
             while (rs.next()) {
-                Vector v = new Vector();
+                Vector<Object> v = new Vector<>();
                 v.add(rs.getInt("id"));
                 v.add(rs.getString("CatName"));
                 v.add(rs.getString("Status"));
@@ -50,114 +71,95 @@ public class Category extends javax.swing.JFrame {
 
     @SuppressWarnings("unchecked")
     private void initComponents() {
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        txtcategory = new javax.swing.JTextField();
-        txtstatus = new javax.swing.JComboBox<>();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        jPanel1 = new JPanel(new BorderLayout(24, 24));
+        jPanel1.setBorder(BorderFactory.createEmptyBorder(32, 40, 40, 40));
+        jLabel1 = UITheme.title("Category");
+        jLabel3 = new JLabel("Category Name");
+        jLabel4 = new JLabel("Status");
+        txtcategory = new JTextField();
+        txtstatus = new JComboBox<>(new String[]{"Active", "DeActive"});
+        jButton1 = UITheme.button("Add");
+        jButton2 = UITheme.button("Update");
+        jButton3 = UITheme.button("Delete");
+        jButton4 = UITheme.button("Cancel");
+        jScrollPane1 = new JScrollPane();
+        jTable1 = new JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        jPanel1.setBackground(new java.awt.Color(0, 0, 0));
+        setTitle("Category Management");
+        setMinimumSize(new Dimension(980, 620));
 
-        jLabel1.setFont(new java.awt.Font("Times New Roman", 1, 36));
-        jLabel1.setForeground(new java.awt.Color(255, 255, 0));
-        jLabel1.setText("Category");
+        JLabel subtitle = new JLabel("Create and maintain book and media categories.");
+        subtitle.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 15));
+        subtitle.setForeground(UITheme.MUTED_TEXT);
 
-        jLabel3.setFont(new java.awt.Font("Times New Roman", 1, 14));
-        jLabel3.setForeground(new java.awt.Color(255, 255, 0));
-        jLabel3.setText("Category Name");
+        JPanel header = new JPanel(new BorderLayout(0, 6));
+        header.setOpaque(false);
+        header.add(jLabel1, BorderLayout.NORTH);
+        header.add(subtitle, BorderLayout.CENTER);
+        jPanel1.add(header, BorderLayout.NORTH);
 
-        jLabel4.setFont(new java.awt.Font("Times New Roman", 1, 14));
-        jLabel4.setForeground(new java.awt.Color(255, 255, 0));
-        jLabel4.setText("Status");
+        JPanel formPanel = UITheme.card();
+        formPanel.setLayout(new GridBagLayout());
 
-        txtstatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"Active", "DeActive"}));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(0, 0, 8, 0);
+        formPanel.add(jLabel3, gbc);
 
-        jButton1.setBackground(new java.awt.Color(0, 255, 51));
-        jButton1.setText("Add");
-        jButton1.addActionListener(evt -> {
-            String cat = txtcategory.getText();
-            String status = txtstatus.getSelectedItem().toString();
-            try {
-                pat = con.prepareStatement("insert into category(CatName,Status) values(?,?)");
-                pat.setString(1, cat);
-                pat.setString(2, status);
-                int k = pat.executeUpdate();
-                if (k == 1) {
-                    JOptionPane.showMessageDialog(this, "Category Created");
-                    txtcategory.setText("");
-                    txtstatus.setSelectedIndex(-1);
-                    Category_Load();
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        });
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        gbc.insets = new Insets(0, 0, 18, 0);
+        formPanel.add(txtcategory, gbc);
 
-        jButton2.setBackground(new java.awt.Color(0, 255, 51));
-        jButton2.setText("Update");
-        jButton2.addActionListener(evt -> {
-            int selectIndex = jTable1.getSelectedRow();
-            if (selectIndex < 0) return;
-            int id = Integer.parseInt(jTable1.getValueAt(selectIndex, 0).toString());
-            String cat = txtcategory.getText();
-            String status = txtstatus.getSelectedItem().toString();
-            try {
-                pat = con.prepareStatement("update category set CatName=?, Status=? where id=?");
-                pat.setString(1, cat);
-                pat.setString(2, status);
-                pat.setInt(3, id);
-                int k = pat.executeUpdate();
-                if (k == 1) {
-                    JOptionPane.showMessageDialog(this, "Updated");
-                    txtcategory.setText("");
-                    txtstatus.setSelectedIndex(-1);
-                    Category_Load();
-                    jButton1.setEnabled(true);
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        });
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        gbc.insets = new Insets(0, 0, 8, 0);
+        formPanel.add(jLabel4, gbc);
 
-        jButton3.setBackground(new java.awt.Color(255, 0, 51));
-        jButton3.setText("Delete");
-        jButton3.addActionListener(evt -> {
-            int selectIndex = jTable1.getSelectedRow();
-            if (selectIndex < 0) return;
-            int id = Integer.parseInt(jTable1.getValueAt(selectIndex, 0).toString());
-            try {
-                pat = con.prepareStatement("delete from category where id=?");
-                pat.setInt(1, id);
-                int k = pat.executeUpdate();
-                if (k == 1) {
-                    JOptionPane.showMessageDialog(this, "Deleted");
-                    Category_Load();
-                    jButton1.setEnabled(true);
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        });
+        gbc.gridy = 3;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        gbc.insets = new Insets(0, 0, 26, 0);
+        formPanel.add(txtstatus, gbc);
 
-        jButton4.setBackground(new java.awt.Color(255, 0, 51));
-        jButton4.setText("Cancel");
-        jButton4.addActionListener(evt -> this.dispose());
+        JPanel actionPanel = new JPanel(new GridBagLayout());
+        actionPanel.setOpaque(false);
+        GridBagConstraints agbc = new GridBagConstraints();
+        agbc.gridx = 0;
+        agbc.gridy = 0;
+        agbc.insets = new Insets(0, 0, 12, 12);
+        actionPanel.add(jButton1, agbc);
+        agbc.gridx = 1;
+        agbc.insets = new Insets(0, 0, 12, 0);
+        actionPanel.add(jButton2, agbc);
+        agbc.gridx = 0;
+        agbc.gridy = 1;
+        agbc.insets = new Insets(0, 0, 0, 12);
+        actionPanel.add(jButton3, agbc);
+        agbc.gridx = 1;
+        agbc.insets = new Insets(0, 0, 0, 0);
+        actionPanel.add(jButton4, agbc);
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        gbc.gridy = 4;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.NONE;
+        formPanel.add(actionPanel, gbc);
+
+        jTable1.setModel(new DefaultTableModel(
             new Object[][]{},
             new String[]{"ID", "Category Name", "Status"}
         ));
         jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 int row = jTable1.getSelectedRow();
+                if (row < 0) {
+                    return;
+                }
                 txtcategory.setText(jTable1.getValueAt(row, 1).toString());
                 txtstatus.setSelectedItem(jTable1.getValueAt(row, 2).toString());
                 jButton1.setEnabled(false);
@@ -165,87 +167,137 @@ public class Category extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(jTable1);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(43, 43, 43)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel4)
-                            .addComponent(jLabel3))
-                        .addGap(30, 30, 30)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtcategory, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtstatus, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(67, 67, 67)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(44, 44, 44)
-                .addComponent(jLabel1)
-                .addGap(51, 51, 51)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(txtcategory, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtstatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4))
-                .addGap(37, 37, 37)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(34, 34, 34)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(26, 26, 26))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
-                .addGap(44, 44, 44))
-        );
+        JPanel tablePanel = UITheme.card();
+        tablePanel.setLayout(new BorderLayout(0, 12));
+        JLabel tableTitle = new JLabel("Category Records");
+        tableTitle.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 18));
+        tablePanel.add(tableTitle, BorderLayout.NORTH);
+        tablePanel.add(jScrollPane1, BorderLayout.CENTER);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
+        JPanel content = new JPanel(new BorderLayout(24, 0));
+        content.setOpaque(false);
+        formPanel.setPreferredSize(new Dimension(360, 420));
+        content.add(formPanel, BorderLayout.WEST);
+        content.add(tablePanel, BorderLayout.CENTER);
+        jPanel1.add(content, BorderLayout.CENTER);
+
+        jButton1.addActionListener(evt -> addCategory());
+        jButton2.addActionListener(evt -> updateCategory());
+        jButton3.addActionListener(evt -> deleteCategory());
+        jButton4.addActionListener(evt -> this.dispose());
+
+        getContentPane().setLayout(new BorderLayout());
+        getContentPane().add(jPanel1, BorderLayout.CENTER);
+        UITheme.applyFrame(this);
 
         pack();
         setLocationRelativeTo(null);
-        setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH); // මෙය add කරන්න
+        setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
+    }
+
+    private void addCategory() {
+        String cat = txtcategory.getText().trim();
+        String status = txtstatus.getSelectedItem().toString();
+        if (cat.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Category name is required.");
+            return;
+        }
+
+        try {
+            pat = con.prepareStatement("insert into category(CatName,Status) values(?,?)");
+            pat.setString(1, cat);
+            pat.setString(2, status);
+            int k = pat.executeUpdate();
+            if (k == 1) {
+                JOptionPane.showMessageDialog(this, "Category created.");
+                clearFields();
+                Category_Load();
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void updateCategory() {
+        int selectIndex = jTable1.getSelectedRow();
+        if (selectIndex < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a category to update.");
+            return;
+        }
+
+        String cat = txtcategory.getText().trim();
+        String status = txtstatus.getSelectedItem().toString();
+        if (cat.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Category name is required.");
+            return;
+        }
+
+        int id = Integer.parseInt(jTable1.getValueAt(selectIndex, 0).toString());
+        try {
+            pat = con.prepareStatement("update category set CatName=?, Status=? where id=?");
+            pat.setString(1, cat);
+            pat.setString(2, status);
+            pat.setInt(3, id);
+            int k = pat.executeUpdate();
+            if (k == 1) {
+                JOptionPane.showMessageDialog(this, "Category updated.");
+                clearFields();
+                Category_Load();
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void deleteCategory() {
+        int selectIndex = jTable1.getSelectedRow();
+        if (selectIndex < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a category to delete.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Delete the selected category?",
+            "Confirm Delete",
+            JOptionPane.YES_NO_OPTION
+        );
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        int id = Integer.parseInt(jTable1.getValueAt(selectIndex, 0).toString());
+        try {
+            pat = con.prepareStatement("delete from category where id=?");
+            pat.setInt(1, id);
+            int k = pat.executeUpdate();
+            if (k == 1) {
+                JOptionPane.showMessageDialog(this, "Category deleted.");
+                clearFields();
+                Category_Load();
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void clearFields() {
+        txtcategory.setText("");
+        txtstatus.setSelectedIndex(0);
+        jButton1.setEnabled(true);
+        txtcategory.requestFocus();
     }
 
     public static void main(String args[]) {
+        UITheme.install();
         java.awt.EventQueue.invokeLater(() -> new Category().setVisible(true));
     }
 
-    private javax.swing.JButton jButton1, jButton2, jButton3, jButton4;
-    private javax.swing.JLabel jLabel1, jLabel3, jLabel4;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
-    private javax.swing.JTextField txtcategory;
-    private javax.swing.JComboBox<String> txtstatus;
+    private JButton jButton1, jButton2, jButton3, jButton4;
+    private JLabel jLabel1, jLabel3, jLabel4;
+    private JPanel jPanel1;
+    private JScrollPane jScrollPane1;
+    private JTable jTable1;
+    private JTextField txtcategory;
+    private JComboBox<String> txtstatus;
 }
